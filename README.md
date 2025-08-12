@@ -1,6 +1,6 @@
 # MicroBioVision Software
 
-An altered version of the BioVision software by Leon P.
+An altered version of the BioVision software by Leon Pastawa (scump1).
 This software is using ImageAnalysis on microscope pictures for applied science in process engineering and cultivation technology.
 
 ## Version Log
