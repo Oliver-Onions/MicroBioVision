@@ -45,7 +45,8 @@ This software is using ImageAnalysis on microscope pictures for applied science 
     - Further Parameter calculations added:
         - Fere_max
         - Real perimeter of pellets
-    - bug fixes
+    - Bug fixes
+    - Spell checking
 
 
 
