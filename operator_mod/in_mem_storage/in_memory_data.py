@@ -1,0 +1,280 @@
+import copy
+import uuid
+import threading
+import numpy as np
+from enum import Enum
+
+class InMemoryData:
+    """
+    InMemoryData is a thread-safe, in-memory data storage system that supports multiple namespaces 
+    for segregating data across different parts of an application (e.g., GUI, controller). It also 
+    supports tagging for easy sorting and retrieval of key variables across namespaces.
+
+    This singleton class ensures that only one instance of the data storage exists and provides 
+    methods to create, manage, and retrieve data within different namespaces.
+
+    Methods:
+    
+        create_namespace(namespace):
+            Creates a new namespace.
+
+        delete_namespace(namespace):
+            Deletes an existing namespace.
+
+        add_data(keys, value, namespace="default", tags=None):
+            Adds data to the specified namespace. Optionally labels the data with tags.
+
+        get_data(key=None, namespace="default", uid=None):
+            Retrieves data from the specified namespace by key or uid.
+
+        delete_data(keys, namespace="default"):
+            Deletes data associated with the provided keys from the specified namespace.
+
+        remove_tags(uid, namespace, tags):
+            Removes specified tags from a data entry identified by uid and namespace.
+
+        get_data_by_tag(tag):
+            Retrieves data entries across namespaces associated with the provided tag.
+
+        purge_all_data(namespace="default"):
+            Clears all data from the specified namespace.
+
+        check_key(key, namespace="default"):
+            Checks if a key exists in the specified namespace.
+
+        list_namespaces():
+            Lists all existing namespaces.
+
+    Usage Examples:
+
+        # Initialize and create namespaces
+        data_store = InMemoryData()
+        data_store.create_namespace("gui")
+        data_store.create_namespace("controller")
+
+        # Add data with tags to different namespaces
+        data_store.add_data(["width", "height"], 600, namespace="gui", tags=["dimension"])
+        data_store.add_data("speed", 120, namespace="controller", tags=["motor"])
+
+        # Retrieve data by key
+        width = data_store.get_data("width", namespace="gui")
+        speed = data_store.get_data("speed", namespace="controller")
+
+        # Retrieve data by tag
+        dimension_data = data_store.get_data_by_tag("dimension")
+
+        # Delete data
+        data_store.delete_data(["width", "height"], namespace="gui")
+
+        # Purge all data from a namespace
+        data_store.purge_all_data(namespace="controller")
+    """
+    
+    class Keys(Enum):
+        
+        # Project Management
+        PROJECT_FOLDER_CONFIG = "ProjectFolderConfig"
+        PROJECT_FOLDER_MEASUREMENT = "ProjectFolderMeasurement"
+        PROJECT_FOLDER_USERDATA = "ProjectFolderUserData"
+        PROJECT_PATH = "ProjectPath"
+
+        
+        # Single Image Analysis INformation
+        SI_FILEPATH_CALIB = "SIFilepathCalib"
+        SI_FILEPATH_TARGET = "SIFilepathTarget"
+        SI_RESULT = "SiResult"
+        
+        PELLET_SIZER_IMAGES = "PelletSizerImages"
+        PELLET_SIZER_IMAGE_SETTINGS = "PelletSizerImageSettings"
+        PELLET_SIZER_RESULT = "PelletSizerResult"
+        
+        PELLET_SIZER_WIDGET_REFERENCE = "PelletSizerWidgetReference"
+        BUBBLE_SIZER_WIDGET_REFERENCE = "BubbleSizeWidgetReference"
+        
+    class Namespaces(Enum):
+        #CONTROLLER = "Controller"
+        DEFAULT = "default"
+
+
+    class Tags(Enum):
+        pass
+        
+    _instance = None
+    _lock = threading.Lock()
+    
+    def __new__(cls):
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super(InMemoryData, cls).__new__(cls)
+                cls._instance.namespaces = {"default": {"data": {}, "key_to_uid": {}, "uid_ref_count": {}}}
+                cls._instance.tags = {}
+            return cls._instance
+
+    def _generate_uid(self):
+        uid = str(uuid.uuid4())
+        return uid
+
+    def _values_equal(self, val1, val2):
+        """
+        A robust comparison function that uses iterative strategy to avoid maximum recursion depth issues.
+        """
+        
+        def is_equal(val1, val2, checked_pairs):
+            if (id(val1), id(val2)) in checked_pairs:  # Circular reference check
+                return True
+            checked_pairs.add((id(val1), id(val2)))
+
+            if isinstance(val1, np.ndarray) and isinstance(val2, np.ndarray):
+                return np.array_equal(val1, val2)
+            if isinstance(val1, dict) and isinstance(val2, dict):
+                if len(val1) != len(val2):
+                    return False
+                for k in val1:
+                    if k not in val2 or not is_equal(val1[k], val2[k], checked_pairs):
+                        return False
+                return True
+            if isinstance(val1, list) and isinstance(val2, list):
+                if len(val1) != len(val2):
+                    return False
+                for item1, item2 in zip(val1, val2):
+                    if not is_equal(item1, item2, checked_pairs):
+                        return False
+                return True
+            if isinstance(val1, set) and isinstance(val2, set):
+                return val1 == val2  # Sets can be compared directly
+            # Add more types if necessary...
+            return val1 == val2
+
+        try:
+            return is_equal(val1, val2, set())
+        except RecursionError:
+            print("RecursionError: Data too deeply nested or circular reference detected.")
+            return False  # or handle appropriately
+
+    def _get_namespace(self, namespace):
+        if namespace not in self.namespaces:
+            # Automatically create the namespace if it does not exist
+            self.namespaces[namespace] = {"data": {}, "key_to_uid": {}, "uid_ref_count": {}}
+        return self.namespaces[namespace]
+
+    def create_namespace(self, namespace):
+        with self._lock:
+            if namespace in self.namespaces:
+                raise ValueError(f"Namespace '{namespace}' already exists.")
+            self.namespaces[namespace] = {"data": {}, "key_to_uid": {}, "uid_ref_count": {}}
+
+    def delete_namespace(self, namespace):
+        with self._lock:
+            if namespace == "default":
+                raise ValueError("Cannot delete the default namespace.")
+            if namespace in self.namespaces:
+                del self.namespaces[namespace]
+            else:
+                raise ValueError(f"Namespace '{namespace}' does not exist.")
+
+    def add_data(self, keys, value, namespace="default", tags=None):
+        if not isinstance(keys, (list, tuple)):
+            keys = [keys]
+        
+        if tags is None:
+            tags = []
+        if not isinstance(tags, list):
+            tags = [tags]
+        
+        with self._lock:
+            ns = self._get_namespace(namespace)
+            existing_data_uid = None
+            existing_uids_checked = set()
+            for key in keys:
+                uid = ns["key_to_uid"].get(key)
+                if uid and uid not in existing_uids_checked:
+                    if self._values_equal(ns["data"].get(uid), value):
+                        existing_data_uid = uid
+                        break
+                    existing_uids_checked.add(uid)
+            
+            if existing_data_uid is None:
+                existing_data_uid = self._generate_uid()
+                ns["data"][existing_data_uid] = value
+
+            for tag in tags:
+                if tag not in self.tags:
+                    self.tags[tag] = set()
+                self.tags[tag].add((existing_data_uid, namespace))
+            
+            for key in keys:
+                old_uid = ns["key_to_uid"].get(key)
+                if old_uid:
+                    ns["uid_ref_count"][old_uid] -= 1
+                    if ns["uid_ref_count"][old_uid] == 0 and old_uid not in ns["key_to_uid"].values():
+                        del ns["data"][old_uid]
+                        del ns["uid_ref_count"][old_uid]
+                ns["key_to_uid"][key] = existing_data_uid
+                ns["uid_ref_count"][existing_data_uid] = ns["uid_ref_count"].get(existing_data_uid, 0) + 1
+
+    def get_data(self, key, namespace="default", uid=None):
+        """Uid and key are exclusive!"""
+        with self._lock:
+            ns = self._get_namespace(namespace)
+            if uid is None:
+                uid = ns["key_to_uid"].get(key)
+            else:
+                uid = uid
+            if uid and uid in ns["data"]:
+                value = ns["data"][uid]
+                if isinstance(value, (dict, list, set, np.ndarray)):
+                    return copy.deepcopy(value)
+                return ns["data"][uid]
+            return None
+
+    def delete_data(self, keys, namespace="default"):
+        if not isinstance(keys, (list, tuple)):
+            keys = [keys]
+        
+        with self._lock:
+            ns = self._get_namespace(namespace)
+            for key in keys:
+                uid = ns["key_to_uid"].pop(key, None)
+                if uid:
+                    ns["uid_ref_count"][uid] -= 1
+                    if ns["uid_ref_count"][uid] == 0:
+                        del ns["data"][uid]
+                        del ns["uid_ref_count"][uid]
+
+    def remove_tags(self, uid, namespace, tags):
+        with self._lock:
+            for tag in tags:
+                if tag in self.tags and (uid, namespace) in self.tags[tag]:
+                    self.tags[tag].remove((uid, namespace))
+                    if not self.tags[tag]:
+                        del self.tags[tag]
+
+    def get_data_by_tag(self, tag):
+        with self._lock:
+            if tag in self.tags:
+                uid_namespace_pairs = self.tags[tag]
+                return {uid: self.get_data(uid=uid, namespace=namespace) for uid, namespace in uid_namespace_pairs}
+            return {}
+
+    def _remove_uid_from_tags(self, uid, namespace):
+        uid_namespace_pair = (uid, namespace)
+        for tag in list(self.tags.keys()):
+            if uid_namespace_pair in self.tags[tag]:
+                self.tags[tag].remove(uid_namespace_pair)
+                if not self.tags[tag]:
+                    del self.tags[tag]
+
+    def purge_all_data(self, namespace="default"):
+        with self._lock:
+            ns = self._get_namespace(namespace)
+            ns["data"].clear()
+            ns["key_to_uid"].clear()
+            ns["uid_ref_count"].clear()
+
+    def check_key(self, key, namespace="default"):
+        ns = self._get_namespace(namespace)
+        return key in ns["key_to_uid"]
+
+    def list_namespaces(self):
+        with self._lock:
+            return list(self.namespaces.keys())
