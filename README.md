@@ -1,5 +1,8 @@
 # MicroBioVision Software [READ ME CORRUPTED THIS IS AN OLD VERSION - Fix in progress]
 
+> Note: This README is currently being revised. Some sections, particularly dependency lists, may be incomplete.
+
+
 An adapted and extended version of the BioVision software originally developed by Leon Pastawa (scump1).
 The software performs image-based analysis of microscope images for applied research in process engineering and cultivation technology, with a focus on pellet morphology.
 
@@ -20,6 +23,9 @@ The software is intended for scientific use and manual result verification.
 
 ## Required Python Packages
 
+WARNING: These packages might not be the correct packages, they are named from memory.
+Solution in the meanwhile: Try running the code and the error will tell what kind of package is not installed in the last sentence of the error message. Install these packages
+
 The following Python packages must be installed before running the software:
 - numpy
 - opencv-python
@@ -39,12 +45,15 @@ pip --version
 
 Install required packages
 ```bash
-pip install numpy opencv-python pandas matplotlib scikit-image scipy
+pip install numpy
 ```
 If multiple Python versions are installed, use:
 ```bash
 python -m pip install numpy opencv-python pandas matplotlib scikit-image scipy
 ```
+
+Warning: Sometimes the installiation got troubles and sometimes the solution is to reopen the program
+
 ## Usage
 
 ### Start
