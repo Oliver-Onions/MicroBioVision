@@ -1,6 +1,6 @@
-# MicroBioVision Software [READ ME CORRUPTED THIS IS AN OLD VERSION - Fix in progress]
+# MicroBioVision Software [This readme is an old version - Fix in progress]
 
-> Note: This README is currently being revised. Some sections, particularly dependency lists, may be incomplete.
+> Note: This README is currently being revised. Some sections, particularly dependency lists, may have gotten lost and are therefor incomplete.
 
 
 An adapted and extended version of the BioVision software originally developed by Leon Pastawa (scump1).
@@ -135,3 +135,6 @@ python -m pip install numpy opencv-python pandas matplotlib scikit-image scipy
 - Real pellet perimeter
 - Bug fixes
 - Spell checking and text corrections
+
+## Outlook
+> Note: Plans to be remembered
