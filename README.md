@@ -19,12 +19,13 @@ The software is intended for scientific use and manual result verification.
 ## System Requirements
 - Python 3.8 or higher
 - A working pip installation
-- Tested on Windows systems
+- Tested on Windows systems (other platforms untested)
 
 ## Required Python Packages
 
-WARNING: These packages might not be the correct packages, they are named from memory.
-Solution in the meanwhile: Try running the code and the error will tell what kind of package is not installed in the last sentence of the error message. Install these packages
+> Note: The package list below may be incomplete or outdated.
+If an import error occurs when running the software, the missing package name is typically shown in the final line of the error message and can be installed manually via pip.
+
 
 The following Python packages must be installed before running the software:
 - numpy
@@ -45,14 +46,24 @@ pip --version
 
 Install required packages
 ```bash
+pip install [package_name]
+```
+
+for example
+```bash
 pip install numpy
 ```
+for batch installation use
+```bash
+pip install numpy opencv-python pandas matplotlib scikit-image scipy
+```
+
 If multiple Python versions are installed, use:
 ```bash
 python -m pip install numpy opencv-python pandas matplotlib scikit-image scipy
 ```
 
-Warning: Sometimes the installiation got troubles and sometimes the solution is to reopen the program
+> Note: If installation issues occur, restarting the terminal or Python environment may resolve the problem.
 
 ## Usage
 
