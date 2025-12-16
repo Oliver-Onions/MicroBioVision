@@ -32,12 +32,13 @@ The following Python packages must be installed before running the software:
 ## Installation
 
 Verify Python and pip
-bash
+'''bash
 python --version 
 pip --version
+'''
 
 Install required packages
-bash
+'''bash
 pip install numpy opencv-python pandas matplotlib scikit-image scipy
 
 If multiple Python versions are installed, use:
