@@ -1,4 +1,4 @@
-# MicroBioVision Software [This readme is an old version - Fix in progress]
+# MicroBioVision Software
 
 > Note: This README is currently being revised. Some sections, particularly dependency lists, may have gotten lost and are therefor incomplete.
 
@@ -136,6 +136,11 @@ python -m pip install numpy opencv-python pandas matplotlib scikit-image scipy
 - Real pellet perimeter
 - Bug fixes
 - Spell checking and text corrections
+
+### Version 0.0.3
+
+- updated readme
+- updated postprocessing 
 
 ## Outlook
 > Note: Plans to be remembered
