@@ -304,7 +304,7 @@ class PelletSizeWidghet(QTabWidget):
             for idx, image in enumerate(data):
                 table = QTableView()
                 model = QStandardItemModel()
-                model.setHorizontalHeaderLabels(["Area [-]", "Diameter [-]", "Perimeter [-]","Area [mym^2]", "Diameter [mym]","Equivalent Perimeter [mym]", "Perimeter [mym]","Feret_max [mym]", "Volume [mym^3] " , "Irregularity [-]", "Diameter Ratio [-]"])
+                model.setHorizontalHeaderLabels(["Area [-]", "(eq) Diameter [-]", "(eq) Perimeter [-]","Area [mym^2]", "(eq) Diameter [mym]","(eq) Perimeter [mym]", "Perimeter [mym]","Feret_max [mym]", "(eq) Volume [mym^3] " , "circularity [-]", "compactness [-]"])
 
                 for result in image:
                     row = []
