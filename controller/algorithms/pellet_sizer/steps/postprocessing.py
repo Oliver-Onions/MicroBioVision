@@ -81,13 +81,13 @@ class PostProcessing:
         rect = cv2.minAreaRect(hull)
         (width, height) = rect[1]
         feret_max = max(width, height)
-        diameterratio = feret_max / diameter
+        diameterratio = diameter / feret_max 
 
         diametermy = diameter * self.pixel_to_um # Convert to micrometers
         areamy = (diametermy ** 2) * np.pi / 4 # Area in square micrometers
         perimetermy = diametermy * np.pi # Perimeter in micrometers
         volumemy = (diametermy ** 3) * np.pi / 6 # Volume in cubic micrometers
-        Irregularity = cv2.arcLength(contour, True) / perimeter
+        Irregularity = perimeter / cv2.arcLength(contour, True) 
         realperimeter = cv2.arcLength(contour, True)* self.pixel_to_um
         feret_max_my = max(width, height)* self.pixel_to_um
 
