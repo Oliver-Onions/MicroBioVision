@@ -35,6 +35,7 @@ The following Python packages must be installed before running the software:
 - scikit-image
 - scipy
 - tkinter (usually included with standard Python installations)
+- PySide6
 
 ## Installation
 
